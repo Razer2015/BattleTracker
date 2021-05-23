@@ -26,7 +26,7 @@ namespace Shared.Models
         [JsonProperty("gamesJson")]
         public string GamesJson { get; set; }
         [JsonProperty("games")]
-        public Dictionary<int, string> Games { get; set; }
+        public Dictionary<int, ulong> Games { get; set; }
         [JsonProperty("clanTag")]
         public string ClanTag { get; set; }
     }
