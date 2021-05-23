@@ -1,0 +1,25 @@
+[package]
+name = "rcon-connector"
+version = "0.1.0"
+authors = ["Razer2015 <razer138@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+battlefield_rcon = { git = "https://github.com/Razer2015/BattleFox", branch = "main"}
+
+tokio = { version = "1.2.0", features = ["rt-multi-thread", "io-util"]} # For async stuff
+tokio-stream = "0.1" # more async stuff
+ascii = "1.0.0" # Rust only supports UTF-8, but RCON does ascii stuff.
+
+dotenv = "0.15"
+
+# Serialization stuff
+serde = { version = "1", features = [ "derive" ] }
+serde_json = "1"
+
+log = "0.4"
+flexi_logger = { version = "0.17", features = ["colors"] }
+
+reqwest = { version = "0.11.3", default-features = false, features = ["json", "rustls-tls", "blocking"] }

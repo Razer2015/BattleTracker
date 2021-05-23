@@ -1,0 +1,41 @@
+version: '3'
+services:
+  backend:
+    image: 'xfilefin/battletracker-tracker:latest'
+    environment:
+      - TRACKER_WEBHOOK_URL=<webhook of where to post the tracked player joins>
+      - JOINLEAVE_WEBHOOK_URL=<webhook of where to post the tracked player joins>
+      - MYSQL_CONNECTION_STRING=server=127.0.0.1;port=3306;database=tracker;user=tracker_user;password=tracker_password
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+  discord:
+    image: 'xfilefin/battletracker-discord:latest'
+    environment:
+      - BACKEND_ENDPOINT=http://backend
+      - BOT_TOKEN=<discord bot token>
+      - GUILD_ID=<guild id>
+      - MODERATOR_ROLE_ID=<role id that can use the commands (player search works for all)>
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+  server:
+    image: 'xfilefin/battletracker-rconconnector:latest'
+    environment:
+      - RCON_IPPORT=127.0.0.1:47200
+      - RCON_PASSWORD=password
+      - BACKEND_API=http://backend
+      - SERVER_GUID=<server guid from battlelog>
+      - RUST_LOG=debug
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
