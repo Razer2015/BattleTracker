@@ -38,7 +38,7 @@ jobs:
           file: ./src/discord-integration/Dockerfile
           push: true
           tags: xfilefin/battletracker-discord:dev-${{ steps.buildnumber.outputs.build_number }},xfilefin/battletracker-discord:dev-latest
-      - name: Build and push discord integration
+      - name: Build and push rcon connector
         uses: docker/build-push-action@v2
         with:
           context: ./src/rcon-connector/.
