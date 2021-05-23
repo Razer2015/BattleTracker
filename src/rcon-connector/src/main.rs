@@ -110,7 +110,7 @@ async fn main() -> RconResult<()> {
                     .await
                 {
                     Ok(_) => (),
-                    Err(error) => error!("Couldn't send join to backend. {:?}", error),
+                    Err(error) => error!("Couldn't send leave to backend. {:?}", error),
                 }
             }
             Ok(_) => {} // ignore other events.

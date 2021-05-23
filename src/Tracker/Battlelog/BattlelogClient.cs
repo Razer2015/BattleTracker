@@ -60,7 +60,7 @@ namespace Battlelog
             if (res.Type.Equals("success") && res.Message.Equals("RESULT") && res.Data.Length > 0)
             {
                 var matches = res.Data
-                    .Where(x => x.Namespace.Equals("cem_ea_id") && x.PersonaName.Equals(soldierName, StringComparison.OrdinalIgnoreCase))
+                    .Where(x => x.Namespace.Equals("cem_ea_id") && x.Games.Any(x => (x.Value & 2048 /* 2048 is BF4 */) > 0) && x.PersonaName.Equals(soldierName, StringComparison.OrdinalIgnoreCase))
                     .GroupBy(p => p.PersonaId).Select(grp => grp.FirstOrDefault());
                 if (matches.Count() == 1) return matches.FirstOrDefault();
 

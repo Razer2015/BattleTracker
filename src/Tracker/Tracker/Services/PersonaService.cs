@@ -212,12 +212,12 @@ namespace Tracker.Services
             }
         }
 
-        private bool IsValidEAGUID(string eaGuid)
+        private static bool IsValidEAGUID(string eaGuid)
         {
-            return eaGuid?.Length == 35 && eaGuid.Substring(0, 3).Equals("EA_");
+            return eaGuid?.Length == 35 && eaGuid.Substring(0, 3).Equals("EA_") && Guid.TryParse(eaGuid[3..], out _);
         }
 
-        private bool IsValidServerGUID(string serverGuid)
+        private static bool IsValidServerGUID(string serverGuid)
         {
             return serverGuid?.Length == 36 && Guid.TryParse(serverGuid, out _);
         }
