@@ -1,14 +1,15 @@
-# Use Node.js v16
-FROM node:16-alpine3.13
+# This stage installs our modules
+FROM mhart/alpine-node:16
+WORKDIR /app
+COPY package.json package-lock.json ./
 
-WORKDIR /usr/src/app
+RUN npm ci --prod
 
-# Copy over the whole folder content
-COPY . ./
+# Then we copy over the modules from above onto a `slim` image
+FROM mhart/alpine-node:slim-16
 
-# Make a clean npm install and only install modules
-# needed for production
-RUN npm ci --only=production
+WORKDIR /app
+COPY --from=0 /app .
+COPY . .
 
-# Run the service on container startup.
-CMD [ "npm", "run", "start" ]
+CMD ["node", "src/index.js"]

@@ -20,7 +20,7 @@ namespace Tracker.Services
     {
         void SearchSoldier(SearchSoldierInput model);
         void AddPlayerTracker(AddTrackerInput model);
-        void ListPlayerTrackers(InteractionInput model);
+        void ListPlayerTrackers(GetTrackersInput model);
         void RemovePlayerTracker(RemoveTrackerInput model);
 
         void OnPlayerJoin(SoldierInput model);
@@ -81,10 +81,10 @@ namespace Tracker.Services
             AckPlayerAdded(model, persona, ingameMetadata);
         }
 
-        public void ListPlayerTrackers(InteractionInput model)
+        public void ListPlayerTrackers(GetTrackersInput model)
         {
-            var trackers = GetTrackers();
-            AckTrackersList(model, trackers);
+            var (trackers, start, end, trackersCount) = GetTrackers(model.Offset);
+            AckTrackersList(model, trackers, start, end, trackersCount);
         }
 
         public void RemovePlayerTracker(RemoveTrackerInput model)
@@ -138,17 +138,35 @@ namespace Tracker.Services
         }
 
         #region CRUD
-        private List<TrackerEntry> GetTrackers()
+        private (List<TrackerEntry> trackers, int start, int end, int totalTrackers) GetTrackers(int offset = 0)
         {
             try
             {
-                return _context.TrackerEntries
+                var trackers = _context.TrackerEntries
+                    .AsQueryable()
+                    .OrderBy(x => x.Id)
+                    .Skip(offset)
+                    .Take(25)
                     .ToList();
+                return (trackers, offset + 1, offset + trackers.Count, GetTrackersCount());
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Couldn't fetch the tracking list.");
-                return null;
+                return (null, 0, 0, 0);
+            }
+        }
+
+        private int GetTrackersCount()
+        {
+            try
+            {
+                return _context.TrackerEntries.Count();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Couldn't fetch the tracking list.");
+                return 0;
             }
         }
 
@@ -459,16 +477,16 @@ namespace Tracker.Services
                                 "https://eaassets-a.akamaihd.net/battlelog/defaultavatars/default-avatar-36.png");
         }
 
-        private void AckTrackersList(InteractionInput model, List<TrackerEntry> trackers)
+        private static void AckTrackersList(InteractionInput model, List<TrackerEntry> trackers, int start, int end, int trackersTotal)
         {
             var embed = new EmbedBuilder {
-                Title = $"{trackers.Count} players being tracked"
+                Title = $"Showing {start} - {end} of {trackersTotal} tracked players",
+                Description = (end < trackersTotal) ? $"Use /gettrackers offset:{end}" : null
             };
 
-            // TODO: Support for more than 25. Either give multiple embeds or add offset parameter in the command. Or wait until buttons are available.
-            foreach (var tracker in trackers.Take(25))
+            foreach (var tracker in trackers)
             {
-                embed.AddField($"{tracker.SoldierName} (ID: {tracker.Id})", $"[{tracker.Reason}](https://battlelog.battlefield.com/bf4/soldier/{tracker?.SoldierName}/stats/{tracker?.PersonaId}/pc/)");
+                embed.AddField($"{tracker.SoldierName} (ID: {tracker.Id})", $"[{tracker.Reason}](https://battlelog.battlefield.com/bf4/soldier/{tracker?.SoldierName}/stats/{tracker?.PersonaId}/pc/)", true);
             }
 
             embed.Color = new Color(0, 255, 0);

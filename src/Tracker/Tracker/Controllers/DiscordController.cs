@@ -39,7 +39,7 @@ namespace Tracker.Controllers
         }
 
         [HttpPost("getTrackers/")]
-        public IActionResult GetTrackers([FromBody] InteractionInput model)
+        public IActionResult GetTrackers([FromBody] GetTrackersInput model)
         {
             _logger.LogInformation($"{model.ApplicationId} - {model.InteractionToken}");
 

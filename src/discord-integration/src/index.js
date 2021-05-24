@@ -66,6 +66,14 @@ client.on('ready', async () => {
             name: "gettrackers",
             description: "Get a list of tracked players",
             default_permission: false,
+            options: [
+                {
+                    "name": "offset",
+                    "description": "Offset for trackers. 25 trackers at a time is the maximum.",
+                    "type": 4,
+                    "required": false
+                },
+            ]
         }
     }, commandClient, [{
         id: MODERATOR_ROLE_ID,
@@ -184,9 +192,11 @@ client.on('ready', async () => {
 
                 // Post the data to backend so it actually adds the player in the tracked players list
                 // Will also ack the "BattleTracker is thinking..." message with a proper message
+                const offset = args?.find(o => o.name === 'offset')?.value;
                 const body = {
                     applicationId: interaction.application_id,
-                    interactionToken: interaction.token
+                    interactionToken: interaction.token,
+                    offset: offset
                 };
 
                 fetch(`${process.env.BACKEND_ENDPOINT}/discord/getTrackers/`, {
