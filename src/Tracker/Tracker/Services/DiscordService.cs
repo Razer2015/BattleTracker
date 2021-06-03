@@ -260,184 +260,153 @@ namespace Tracker.Services
         #region Ack Webhooks
         private void SearchSoldier(SearchSoldierInput input, Persona persona, IngameMetadata ingameMetadata)
         {
-            var embed = new EmbedBuilder {
-                Author = new EmbedAuthorBuilder() {
-                    Name = persona.PersonaName,
-                    Url = $"https://battlelog.battlefield.com/bf4/user/{persona.PersonaName}/",
-                    IconUrl = persona?.User?.GravatarMd5 != null ?
+            try
+            {
+                var embed = new EmbedBuilder {
+                    Author = new EmbedAuthorBuilder() {
+                        Name = persona.PersonaName,
+                        Url = $"https://battlelog.battlefield.com/bf4/user/{persona.PersonaName}/",
+                        IconUrl = persona?.User?.GravatarMd5 != null ?
                                 $"https://www.gravatar.com/avatar/{persona.User.GravatarMd5}?d=https://eaassets-a.akamaihd.net/battlelog/defaultavatars/default-avatar-36.png" :
                                 "https://eaassets-a.akamaihd.net/battlelog/defaultavatars/default-avatar-36.png"
-                }
-            };
+                    }
+                };
 
-            if (ingameMetadata?.EmblemPngUrl != null)
-            {
-                embed.WithThumbnailUrl(ingameMetadata.EmblemPngUrl);
-            }
-
-            if (!string.IsNullOrEmpty(persona?.PersonaName))
-            {
-                if (persona?.PersonaId != null)
+                if (ingameMetadata?.EmblemPngUrl != null)
                 {
-                    embed.AddField("Battlelog",
-                        $"[**{persona.PersonaName}** - Battlelog](https://battlelog.battlefield.com/bf4/soldier/{persona.PersonaName}/stats/{persona?.PersonaId}/pc/)");
+                    embed.WithThumbnailUrl(ingameMetadata.EmblemPngUrl);
+                }
+
+                if (!string.IsNullOrEmpty(persona?.PersonaName))
+                {
+                    if (persona?.PersonaId != null)
+                    {
+                        embed.AddField("Battlelog",
+                            $"[**{persona.PersonaName}** - Battlelog](https://battlelog.battlefield.com/bf4/soldier/{persona.PersonaName}/stats/{persona?.PersonaId}/pc/)");
+                    }
+                    else
+                    {
+                        embed.AddField("Battlelog",
+                            $"[**{persona.PersonaName}** - Battlelog](https://battlelog.battlefield.com/bf4/user/{persona.PersonaName}/)");
+                    }
+                    embed.AddField("247fairplay",
+                        $"[**{persona.PersonaName}** - 247FairPlay](https://www.247fairplay.com/CheatDetector/{persona.PersonaName})");
+                    if (persona?.PersonaId != null)
+                    {
+                        embed.AddField("BF4CheatReport",
+                            $"[**{persona.PersonaName}** - BF4CheatReport](https://bf4cheatreport.com/?pid={persona?.PersonaId}&uid=&cnt=200&startdate=)");
+                        embed.AddField("BF4DB",
+                            $"[**{persona.PersonaName}** - BF4DB](https://www.bf4db.com/player/{persona?.PersonaId})");
+                    }
                 }
                 else
                 {
-                    embed.AddField("Battlelog",
-                        $"[**{persona.PersonaName}** - Battlelog](https://battlelog.battlefield.com/bf4/user/{persona.PersonaName}/)");
+                    embed.AddField("Error", "Couldn't parse the playername.");
                 }
-                embed.AddField("247fairplay",
-                    $"[**{persona.PersonaName}** - 247FairPlay](https://www.247fairplay.com/CheatDetector/{persona.PersonaName})");
-                if (persona?.PersonaId != null)
-                {
-                    embed.AddField("BF4CheatReport",
-                        $"[**{persona.PersonaName}** - BF4CheatReport](https://bf4cheatreport.com/?pid={persona?.PersonaId}&uid=&cnt=200&startdate=)");
-                    embed.AddField("BF4DB",
-                        $"[**{persona.PersonaName}** - BF4DB](https://www.bf4db.com/player/{persona?.PersonaId})");
-                }
-            }
-            else
-            {
-                embed.AddField("Error", "Couldn't parse the playername.");
-            }
 
-            embed.Color = new Color(0, 255, 0);
+                embed.Color = new Color(0, 255, 0);
 
-            embed.Footer = new EmbedFooterBuilder() {
-                Text = $"© BattleTracker by xfileFIN ({DateTime.Now.Year})",
-            };
+                embed.Footer = new EmbedFooterBuilder() {
+                    Text = $"© BattleTracker by xfileFIN ({DateTime.Now.Year})",
+                };
 
-            embed.WithTimestamp(DateTimeOffset.UtcNow);
+                embed.WithTimestamp(DateTimeOffset.UtcNow);
 
-            var data = new WebhookModel {
-                Embeds = new WebhookEmbed[] {
+                var data = new WebhookModel {
+                    Embeds = new WebhookEmbed[] {
                     embed.Build().ToModel()
                 }
-            };
+                };
 
-            PostWebhookEdit(data, input);
+                PostWebhookEdit(data, input);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Couldn't post searched soldier webhook.");
+            }
         }
 
         private void AckPlayerAdded(AddTrackerInput input, Persona persona, IngameMetadata ingameMetadata)
         {
-            var embed = new EmbedBuilder {
-                Title = "Success",
-                Description = "Player added to tracked players list",
-                Author = new EmbedAuthorBuilder() {
-                    Name = persona.PersonaName,
-                    Url = $"https://battlelog.battlefield.com/bf4/user/{persona.PersonaName}/",
-                    IconUrl = persona?.User?.GravatarMd5 != null ?
+            try
+            {
+                var embed = new EmbedBuilder {
+                    Title = "Success",
+                    Description = "Player added to tracked players list",
+                    Author = new EmbedAuthorBuilder() {
+                        Name = persona.PersonaName,
+                        Url = $"https://battlelog.battlefield.com/bf4/user/{persona.PersonaName}/",
+                        IconUrl = persona?.User?.GravatarMd5 != null ?
                                 $"https://www.gravatar.com/avatar/{persona.User.GravatarMd5}?d=https://eaassets-a.akamaihd.net/battlelog/defaultavatars/default-avatar-36.png" :
                                 "https://eaassets-a.akamaihd.net/battlelog/defaultavatars/default-avatar-36.png"
-                }
-            };
+                    }
+                };
 
-            if (ingameMetadata?.EmblemPngUrl != null)
-            {
-                embed.WithThumbnailUrl(ingameMetadata.EmblemPngUrl);
-            }
-
-            embed.AddField("Reason", input.Reason);
-
-            if (!string.IsNullOrEmpty(persona?.PersonaName))
-            {
-                if (persona?.PersonaId != null)
+                if (ingameMetadata?.EmblemPngUrl != null)
                 {
-                    embed.AddField("Battlelog",
-                        $"[**{persona.PersonaName}** - Battlelog](https://battlelog.battlefield.com/bf4/soldier/{persona.PersonaName}/stats/{persona?.PersonaId}/pc/)");
+                    embed.WithThumbnailUrl(ingameMetadata.EmblemPngUrl);
+                }
+
+                embed.AddField("Reason", input.Reason);
+
+                if (!string.IsNullOrEmpty(persona?.PersonaName))
+                {
+                    if (persona?.PersonaId != null)
+                    {
+                        embed.AddField("Battlelog",
+                            $"[**{persona.PersonaName}** - Battlelog](https://battlelog.battlefield.com/bf4/soldier/{persona.PersonaName}/stats/{persona?.PersonaId}/pc/)");
+                    }
+                    else
+                    {
+                        embed.AddField("Battlelog",
+                            $"[**{persona.PersonaName}** - Battlelog](https://battlelog.battlefield.com/bf4/user/{persona.PersonaName}/)");
+                    }
+                    embed.AddField("247fairplay",
+                        $"[**{persona.PersonaName}** - 247FairPlay](https://www.247fairplay.com/CheatDetector/{persona.PersonaName})");
+                    if (persona?.PersonaId != null)
+                    {
+                        embed.AddField("BF4CheatReport",
+                            $"[**{persona.PersonaName}** - BF4CheatReport](https://bf4cheatreport.com/?pid={persona?.PersonaId}&uid=&cnt=200&startdate=)");
+                        embed.AddField("BF4DB",
+                            $"[**{persona.PersonaName}** - BF4DB](https://www.bf4db.com/player/{persona?.PersonaId})");
+                    }
                 }
                 else
                 {
-                    embed.AddField("Battlelog",
-                        $"[**{persona.PersonaName}** - Battlelog](https://battlelog.battlefield.com/bf4/user/{persona.PersonaName}/)");
+                    embed.AddField("Error", "Couldn't parse the playername.");
                 }
-                embed.AddField("247fairplay",
-                    $"[**{persona.PersonaName}** - 247FairPlay](https://www.247fairplay.com/CheatDetector/{persona.PersonaName})");
-                if (persona?.PersonaId != null)
-                {
-                    embed.AddField("BF4CheatReport",
-                        $"[**{persona.PersonaName}** - BF4CheatReport](https://bf4cheatreport.com/?pid={persona?.PersonaId}&uid=&cnt=200&startdate=)");
-                    embed.AddField("BF4DB",
-                        $"[**{persona.PersonaName}** - BF4DB](https://www.bf4db.com/player/{persona?.PersonaId})");
-                }
+
+                embed.Color = new Color(0, 255, 0);
+
+                embed.Footer = new EmbedFooterBuilder() {
+                    Text = $"© BattleTracker by xfileFIN ({DateTime.Now.Year})",
+                };
+
+                embed.WithTimestamp(DateTimeOffset.UtcNow);
+
+                var data = new WebhookModel {
+                    Embeds = new WebhookEmbed[] {
+                        embed.Build().ToModel()
+                    }
+                };
+
+                PostWebhookEdit(data, input);
             }
-            else
+            catch (Exception ex)
             {
-                embed.AddField("Error", "Couldn't parse the playername.");
+                _logger.LogError(ex, "Couldn't post the player added webhook.");
             }
-
-            embed.Color = new Color(0, 255, 0);
-
-            embed.Footer = new EmbedFooterBuilder() {
-                Text = $"© BattleTracker by xfileFIN ({DateTime.Now.Year})",
-            };
-
-            embed.WithTimestamp(DateTimeOffset.UtcNow);
-
-            var data = new WebhookModel {
-                Embeds = new WebhookEmbed[] {
-                    embed.Build().ToModel()
-                }
-            };
-
-            PostWebhookEdit(data, input);
         }
 
         private void AckPlayerJoinLeave(SoldierInput input, Persona persona, IngameMetadata ingameMetadata, bool isLeave = false)
         {
-            var embed = new EmbedBuilder {
-                Title = isLeave ? "Player left" : "Player joined",
-                Description = input.ServerName
-            };
-
-            if (ingameMetadata?.EmblemPngUrl != null)
+            try
             {
-                embed.WithThumbnailUrl(ingameMetadata.EmblemPngUrl);
-            }
+                var embed = new EmbedBuilder {
+                    Title = isLeave ? "Player left" : "Player joined",
+                    Description = input.ServerName
+                };
 
-            if (persona?.PersonaId != null)
-            {
-                embed.AddField("Battlelog",
-                    $"[**{input.SoldierName}** - Battlelog](https://battlelog.battlefield.com/bf4/soldier/{input.SoldierName}/stats/{persona?.PersonaId}/pc/)");
-            }
-            else
-            {
-                embed.AddField("Battlelog",
-                    $"[**{input.SoldierName}** - Battlelog](https://battlelog.battlefield.com/bf4/user/{input.SoldierName}/)");
-            }
-
-            embed.Color = isLeave ? new Color(255, 0, 0) : new Color(0, 255, 0);
-
-            embed.Footer = new EmbedFooterBuilder() {
-                Text = $"© BattleTracker by xfileFIN ({DateTime.Now.Year})",
-            };
-
-            embed.WithTimestamp(DateTimeOffset.UtcNow);
-
-            _joinWebhookClient?.SendMessageAsync(embeds: new List<Embed> { embed.Build() }, username: input.SoldierName, avatarUrl: persona?.User?.GravatarMd5 != null ?
-                                $"https://www.gravatar.com/avatar/{persona.User.GravatarMd5}?d=https://eaassets-a.akamaihd.net/battlelog/defaultavatars/default-avatar-36.png" :
-                                "https://eaassets-a.akamaihd.net/battlelog/defaultavatars/default-avatar-36.png");
-        }
-
-        private void AckTrackedPlayerJoinLeave(SoldierInput input, TrackerEntry tracker, Persona persona, IngameMetadata ingameMetadata, bool isLeave = false)
-        {
-            var embed = new EmbedBuilder {
-                Title = isLeave ? "Tracked player left" : "Tracked player joined",
-                Description = input.ServerName,
-                //Author = new EmbedAuthorBuilder() {
-                //    Name = persona.PersonaName,
-                //    Url = $"https://battlelog.battlefield.com/bf4/user/{input.SoldierName}/",
-                //    IconUrl = persona?.User?.GravatarMd5 != null ?
-                //                $"https://www.gravatar.com/avatar/{persona.User.GravatarMd5}?d=https://eaassets-a.akamaihd.net/battlelog/defaultavatars/default-avatar-36.png" :
-                //                "https://eaassets-a.akamaihd.net/battlelog/defaultavatars/default-avatar-36.png"
-                //}
-            };
-
-            embed.AddField("Reason", tracker.Reason);
-
-            if (!isLeave)
-            {
                 if (ingameMetadata?.EmblemPngUrl != null)
                 {
                     embed.WithThumbnailUrl(ingameMetadata.EmblemPngUrl);
@@ -453,81 +422,154 @@ namespace Tracker.Services
                     embed.AddField("Battlelog",
                         $"[**{input.SoldierName}** - Battlelog](https://battlelog.battlefield.com/bf4/user/{input.SoldierName}/)");
                 }
-                embed.AddField("247fairplay",
-                    $"[**{input.SoldierName}** - 247FairPlay](https://www.247fairplay.com/CheatDetector/{input.SoldierName})");
-                if (persona?.PersonaId != null)
-                {
-                    embed.AddField("BF4CheatReport",
-                        $"[**{input.SoldierName}** - BF4CheatReport](https://bf4cheatreport.com/?pid={persona?.PersonaId}&uid=&cnt=200&startdate=)");
-                    embed.AddField("BF4DB",
-                        $"[**{input.SoldierName}** - BF4DB](https://www.bf4db.com/player/{persona?.PersonaId})");
-                }
+
+                embed.Color = isLeave ? new Color(255, 0, 0) : new Color(0, 255, 0);
+
+                embed.Footer = new EmbedFooterBuilder() {
+                    Text = $"© BattleTracker by xfileFIN ({DateTime.Now.Year})",
+                };
+
+                embed.WithTimestamp(DateTimeOffset.UtcNow);
+
+                _joinWebhookClient?.SendMessageAsync(embeds: new List<Embed> { embed.Build() }, username: input.SoldierName, avatarUrl: persona?.User?.GravatarMd5 != null ?
+                                    $"https://www.gravatar.com/avatar/{persona.User.GravatarMd5}?d=https://eaassets-a.akamaihd.net/battlelog/defaultavatars/default-avatar-36.png" :
+                                    "https://eaassets-a.akamaihd.net/battlelog/defaultavatars/default-avatar-36.png");
             }
-
-            embed.Color = isLeave ? new Color(255, 0, 0) : new Color(0, 255, 0);
-
-            embed.Footer = new EmbedFooterBuilder() {
-                Text = $"© BattleTracker by xfileFIN ({DateTime.Now.Year})",
-            };
-
-            embed.WithTimestamp(DateTimeOffset.UtcNow);
-
-            _trackerWebhookClient.SendMessageAsync(isLeave ? null : "@here", embeds: new List<Embed> { embed.Build() }, username: input.SoldierName, avatarUrl: persona?.User?.GravatarMd5 != null ?
-                                $"https://www.gravatar.com/avatar/{persona.User.GravatarMd5}?d=https://eaassets-a.akamaihd.net/battlelog/defaultavatars/default-avatar-36.png" :
-                                "https://eaassets-a.akamaihd.net/battlelog/defaultavatars/default-avatar-36.png");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Couldn't post Join or Leave webhook.");
+            }
         }
 
-        private static void AckTrackersList(InteractionInput model, List<TrackerEntry> trackers, int start, int end, int trackersTotal)
+        private void AckTrackedPlayerJoinLeave(SoldierInput input, TrackerEntry tracker, Persona persona, IngameMetadata ingameMetadata, bool isLeave = false)
         {
-            var embed = new EmbedBuilder {
-                Title = $"Showing {start} - {end} of {trackersTotal} tracked players",
-                Description = (end < trackersTotal) ? $"Use /gettrackers offset:{end}" : null
-            };
-
-            foreach (var tracker in trackers)
+            try
             {
-                embed.AddField($"{tracker.SoldierName} (ID: {tracker.Id})", $"[{tracker.Reason}](https://battlelog.battlefield.com/bf4/soldier/{tracker?.SoldierName}/stats/{tracker?.PersonaId}/pc/)", true);
-            }
+                var embed = new EmbedBuilder {
+                    Title = isLeave ? "Tracked player left" : "Tracked player joined",
+                    Description = input.ServerName,
+                    //Author = new EmbedAuthorBuilder() {
+                    //    Name = persona.PersonaName,
+                    //    Url = $"https://battlelog.battlefield.com/bf4/user/{input.SoldierName}/",
+                    //    IconUrl = persona?.User?.GravatarMd5 != null ?
+                    //                $"https://www.gravatar.com/avatar/{persona.User.GravatarMd5}?d=https://eaassets-a.akamaihd.net/battlelog/defaultavatars/default-avatar-36.png" :
+                    //                "https://eaassets-a.akamaihd.net/battlelog/defaultavatars/default-avatar-36.png"
+                    //}
+                };
 
-            embed.Color = new Color(0, 255, 0);
+                embed.AddField("Reason", tracker.Reason);
 
-            embed.Footer = new EmbedFooterBuilder() {
-                Text = $"© BattleTracker by xfileFIN ({DateTime.Now.Year})",
-            };
+                if (!isLeave)
+                {
+                    if (ingameMetadata?.EmblemPngUrl != null)
+                    {
+                        embed.WithThumbnailUrl(ingameMetadata.EmblemPngUrl);
+                    }
 
-            embed.WithTimestamp(DateTimeOffset.UtcNow);
-
-            var data = new WebhookModel {
-                Embeds = new WebhookEmbed[] {
-                    embed.Build().ToModel()
+                    if (persona?.PersonaId != null)
+                    {
+                        embed.AddField("Battlelog",
+                            $"[**{input.SoldierName}** - Battlelog](https://battlelog.battlefield.com/bf4/soldier/{input.SoldierName}/stats/{persona?.PersonaId}/pc/)");
+                    }
+                    else
+                    {
+                        embed.AddField("Battlelog",
+                            $"[**{input.SoldierName}** - Battlelog](https://battlelog.battlefield.com/bf4/user/{input.SoldierName}/)");
+                    }
+                    embed.AddField("247fairplay",
+                        $"[**{input.SoldierName}** - 247FairPlay](https://www.247fairplay.com/CheatDetector/{input.SoldierName})");
+                    if (persona?.PersonaId != null)
+                    {
+                        embed.AddField("BF4CheatReport",
+                            $"[**{input.SoldierName}** - BF4CheatReport](https://bf4cheatreport.com/?pid={persona?.PersonaId}&uid=&cnt=200&startdate=)");
+                        embed.AddField("BF4DB",
+                            $"[**{input.SoldierName}** - BF4DB](https://www.bf4db.com/player/{persona?.PersonaId})");
+                    }
                 }
-            };
 
-            PostWebhookEdit(data, model);
+                embed.Color = isLeave ? new Color(255, 0, 0) : new Color(0, 255, 0);
+
+                embed.Footer = new EmbedFooterBuilder() {
+                    Text = $"© BattleTracker by xfileFIN ({DateTime.Now.Year})",
+                };
+
+                embed.WithTimestamp(DateTimeOffset.UtcNow);
+
+                _trackerWebhookClient.SendMessageAsync(isLeave ? null : "@here", embeds: new List<Embed> { embed.Build() }, username: input.SoldierName, avatarUrl: persona?.User?.GravatarMd5 != null ?
+                                    $"https://www.gravatar.com/avatar/{persona.User.GravatarMd5}?d=https://eaassets-a.akamaihd.net/battlelog/defaultavatars/default-avatar-36.png" :
+                                    "https://eaassets-a.akamaihd.net/battlelog/defaultavatars/default-avatar-36.png");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Couldn't post tracked player Join or Leave webhook.");
+            }
+        }
+
+        private void AckTrackersList(InteractionInput model, List<TrackerEntry> trackers, int start, int end, int trackersTotal)
+        {
+            try
+            {
+                var embed = new EmbedBuilder {
+                    Title = $"Showing {start} - {end} of {trackersTotal} tracked players",
+                    Description = (end < trackersTotal) ? $"Use /gettrackers offset:{end}" : null
+                };
+
+                foreach (var tracker in trackers)
+                {
+                    embed.AddField($"{tracker.SoldierName} (ID: {tracker.Id})", $"[{tracker.Reason}](https://battlelog.battlefield.com/bf4/soldier/{tracker?.SoldierName}/stats/{tracker?.PersonaId}/pc/)", true);
+                }
+
+                embed.Color = new Color(0, 255, 0);
+
+                embed.Footer = new EmbedFooterBuilder() {
+                    Text = $"© BattleTracker by xfileFIN ({DateTime.Now.Year})",
+                };
+
+                embed.WithTimestamp(DateTimeOffset.UtcNow);
+
+                var data = new WebhookModel {
+                    Embeds = new WebhookEmbed[] {
+                        embed.Build().ToModel()
+                    }
+                };
+
+                PostWebhookEdit(data, model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Couldn't post trackers list webhook.");
+            }
         }
 
         private void AckPlayerRemoved(RemoveTrackerInput input, TrackerEntry tracker)
         {
-            var embed = new EmbedBuilder {
-                Title = "Success",
-                Description = $"Player **{tracker.SoldierName}** removed from the tracked players list",
-            };
+            try
+            {
+                var embed = new EmbedBuilder {
+                    Title = "Success",
+                    Description = $"Player **{tracker.SoldierName}** removed from the tracked players list",
+                };
 
-            embed.Color = new Color(0, 255, 0);
+                embed.Color = new Color(0, 255, 0);
 
-            embed.Footer = new EmbedFooterBuilder() {
-                Text = $"© BattleTracker by xfileFIN ({DateTime.Now.Year})",
-            };
+                embed.Footer = new EmbedFooterBuilder() {
+                    Text = $"© BattleTracker by xfileFIN ({DateTime.Now.Year})",
+                };
 
-            embed.WithTimestamp(DateTimeOffset.UtcNow);
+                embed.WithTimestamp(DateTimeOffset.UtcNow);
 
-            var data = new WebhookModel {
-                Embeds = new WebhookEmbed[] {
-                    embed.Build().ToModel()
-                }
-            };
+                var data = new WebhookModel {
+                    Embeds = new WebhookEmbed[] {
+                        embed.Build().ToModel()
+                    }
+                };
 
-            PostWebhookEdit(data, input);
+                PostWebhookEdit(data, input);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Couldn't post player removed webhook.");
+            }
         }
         #endregion
 
