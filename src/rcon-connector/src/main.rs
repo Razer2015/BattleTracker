@@ -10,6 +10,7 @@ use battlefield_rcon::{
 use dotenv::dotenv;
 use rcon::RconResult;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use tokio_stream::StreamExt;
 
@@ -40,10 +41,8 @@ async fn main() -> RconResult<()> {
     // let words = bf4.get_underlying_rcon_client().query_raw(vec!["serverInfo".into_ascii_string().unwrap()]).await.unwrap();
     // info!("serverInfo returned: {:#?}", words);
 
-    let backend_api = match dotenv::var("BACKEND_API") {
-        Ok(val) => val,
-        Err(e) => panic!("could not find {}: {}", "SERVER_GUID", e),
-    };
+    let backend_api = Arc::new(dotenv::var("BACKEND_API")
+        .expect("Couldn't find BACKEND_API environment variable."));
 
     let serverinfo = match bf4.server_info().await {
         Ok(info) => info,
@@ -74,18 +73,20 @@ async fn main() -> RconResult<()> {
                 }
                 map.insert("eaGuid", format!("{}", player.eaid));
                 map.insert("soldierName", format!("{}", player.name));
-
-                let client = reqwest::Client::new();
-
-                match client
-                    .post(format!("{}/soldier/onjoin", backend_api))
-                    .json(&map)
-                    .send()
-                    .await
-                {
-                    Ok(_) => (),
-                    Err(error) => error!("Couldn't send join to backend. {:?}", error),
-                }
+                
+                let api_url = backend_api.clone();
+                tokio::spawn(async move {
+                    let client = reqwest::Client::new();
+                    match client
+                        .post(format!("{}/soldier/onjoin", api_url))
+                        .json(&map)
+                        .send()
+                        .await
+                    {
+                        Ok(_) => (),
+                        Err(error) => error!("Couldn't send join to backend. {:?}", error),
+                    }
+                });
             }
             Ok(Event::Leave {
                 player,
@@ -101,17 +102,20 @@ async fn main() -> RconResult<()> {
                 map.insert("eaGuid", format!("{}", player.eaid));
                 map.insert("soldierName", format!("{}", player.name));
 
-                let client = reqwest::Client::new();
+                let api_url = backend_api.clone();
+                tokio::spawn(async move {
+                    let client = reqwest::Client::new();
 
-                match client
-                    .post(format!("{}/soldier/onLeave", backend_api))
-                    .json(&map)
-                    .send()
-                    .await
-                {
-                    Ok(_) => (),
-                    Err(error) => error!("Couldn't send leave to backend. {:?}", error),
-                }
+                    match client
+                        .post(format!("{}/soldier/onLeave", api_url))
+                        .json(&map)
+                        .send()
+                        .await
+                    {
+                        Ok(_) => (),
+                        Err(error) => error!("Couldn't send leave to backend. {:?}", error),
+                    }
+                });
             }
             Ok(_) => {} // ignore other events.
             Err(_) => {
