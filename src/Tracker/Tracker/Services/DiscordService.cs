@@ -123,16 +123,17 @@ namespace Tracker.Services
                 return;
             }
 
-            var persona = _personaService?.GetPersona(model.SoldierName, model.ServerGuid);
-            var ingameMetadata = _personaService.GetIngameMetadata(personaInfo.PersonaId);
-
             if (_joinWebhookClient != null)
             {
+                var persona = _personaService?.GetPersona(model.SoldierName, model.ServerGuid);
+                var ingameMetadata = _personaService.GetIngameMetadata(personaInfo.PersonaId);
                 AckPlayerJoinLeave(model, persona, ingameMetadata, isLeave);
             }
 
             if (GetTrackerByPersonaId(personaInfo.PersonaId, out var tracker))
             {
+                var persona = _personaService?.GetPersona(model.SoldierName, model.ServerGuid);
+                var ingameMetadata = _personaService.GetIngameMetadata(personaInfo.PersonaId);
                 AckTrackedPlayerJoinLeave(model, tracker, persona, ingameMetadata, isLeave);
             }
         }
